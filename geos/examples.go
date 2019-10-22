@@ -13,7 +13,7 @@ import (
 
 	"code.google.com/p/draw2d/draw2d"
 
-	"github.com/paulsmith/gogeos/geos"
+	"github.com/geoblink/gogeos/geos"
 )
 
 const (
