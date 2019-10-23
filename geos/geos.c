@@ -1,6 +1,6 @@
 #include "geos.h"
 
-void gogeos_notice_handler(const char *fmt, ...) {
+void go_geos_notice_handler2(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     fprintf(stderr, "NOTICE: ");
@@ -10,19 +10,19 @@ void gogeos_notice_handler(const char *fmt, ...) {
 
 #define ERRLEN 256
 
-char gogeos_last_err[ERRLEN];
+char go_geos_last_err[ERRLEN];
 
-void gogeos_error_handler(const char *fmt, ...) {
+void go_geos_error_handler(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(gogeos_last_err, (size_t) ERRLEN, fmt, ap);
+    vsnprintf(go_geos_last_err, (size_t) ERRLEN, fmt, ap);
     va_end(ap);
 }
 
-char *gogeos_get_last_error(void) {
-    return gogeos_last_err;
+char *go_geos_get_last_error(void) {
+    return go_geos_last_err;
 }
 
-GEOSContextHandle_t gogeos_initGEOS() {
-    return initGEOS_r(gogeos_notice_handler, gogeos_error_handler);
+GEOSContextHandle_t go_geos_initGEOS() {
+    return initGEOS_r(go_geos_notice_handler2, go_geos_error_handler);
 }

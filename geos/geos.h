@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-void gogeos_notice_handler(const char *fmt, ...);
-void gogeos_error_handler(const char *fmt, ...);
-char *gogeos_get_last_error(void);
-GEOSContextHandle_t gogeos_initGEOS();
+void go_geos_notice_handler2(const char *fmt, ...);
+void go_geos_error_handler(const char *fmt, ...);
+char *go_geos_get_last_error(void);
+GEOSContextHandle_t go_geos_initGEOS();
