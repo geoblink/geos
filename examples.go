@@ -1,6 +1,6 @@
 // +build ignore
 
-package main
+package geos
 
 import (
 	"bufio"
@@ -13,7 +13,7 @@ import (
 
 	"code.google.com/p/draw2d/draw2d"
 
-	"github.com/geoblink/gogeos/geos"
+	"github.com/geoblink/geos"
 )
 
 const (
