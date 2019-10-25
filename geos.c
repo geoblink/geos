@@ -1,11 +1,11 @@
 #include "geos.h"
 
 void go_geos_notice_handler2(const char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    fprintf(stderr, "NOTICE: ");
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
+    // va_list ap;
+    // va_start(ap, fmt);
+    // fprintf(stderr, "NOTICE: ");
+    // vfprintf(stderr, fmt, ap);
+    // va_end(ap);
 }
 
 #define ERRLEN 256
