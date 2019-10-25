@@ -354,6 +354,15 @@ func NewLinearRing(coords ...Coord) (*Geometry, error) {
 	}
 	return geomFromCoordSeq(cs, "NewLinearRing", cGEOSGeom_createLinearRing)
 }
+// NewLinearRingFromFlatPoints returns a new gometry of type LinearRing, initialized with the given coordinates provided as flat points.  The number of coordinates must either be zero (none
+//// given), in which case it's an empty geometry (IsEmpty() == true), or >= 4.
+func NewLinearRingFromFlatPoints(fp []float64) (*Geometry, error) {
+	cs, err := coordSeqFromFlatPoints(fp)
+	if err != nil {
+		return nil, err
+	}
+	return geomFromCoordSeq(cs, "NewLinearRing", cGEOSGeom_createLinearRing)
+}
 
 // NewLineString returns a new geometry of type LineString, initialized with the
 // given coordinates. If no coordinates are given, it's an empty geometry
@@ -395,6 +404,15 @@ func NewPolygon(shell []Coord, holes ...[]Coord) (*Geometry, error) {
 	}
 	runtime.SetFinalizer(ext, nil)
 	return PolygonFromGeom(ext, ints...)
+}
+
+func NewPolygonFromFlatPoints (shell []float64) (*Geometry, error){
+	ext, err := NewLinearRingFromFlatPoints(shell)
+	if err != nil {
+		return nil, err
+	}
+	runtime.SetFinalizer(ext, nil)
+	return PolygonFromGeom(ext)
 }
 
 // PolygonFromGeom returns a new geometry of type Polygon, initialized with the
@@ -633,6 +651,10 @@ func (g *Geometry) IsSimple() (bool, error) {
 // IsRing returns true if the lineal geometry has the ring property.
 func (g *Geometry) IsRing() (bool, error) {
 	return g.unaryPred("IsRing", cGEOSisRing)
+}
+// IsValid returns true if the geometry is valid
+func (g *Geometry) IsValid () (bool, error) {
+	return g.unaryPred("IsValid", cGEOSisValid)
 }
 
 // HasZ returns true if the geometry is 3D.

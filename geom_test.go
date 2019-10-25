@@ -1064,6 +1064,24 @@ func TestHex(t *testing.T) {
 	}
 }
 
+func TestNewPolygonFromFlatPoints(t *testing.T) {
+	geom, err := NewPolygonFromFlatPoints([]float64{1, 0, 0, 1, 0,0, 1,0})
+	if err != nil {
+		t.Fatalf("Expected nil error got %v", err)
+	}
+	shell, err := geom.Shell()
+	if err != nil {
+		t.Fatalf("Expected nil error got %v", err)
+	}
+	coords, err := shell.Coords()
+	if err != nil {
+		t.Fatalf("Expected nil error got %v", err)
+	}
+	if len(coords) != 4 {
+		t.Errorf("Expected four coordinates received %d for %v", len(coords), coords)
+	}
+}
+
 func TestLineInterpolatePointDistError(t *testing.T) {
 	line := Must(FromWKT("LINESTRING(0 0, 10 10)"))
 	_, err := line.LineInterpolatePoint(-0.1)
