@@ -6,6 +6,7 @@ package geos
 import "C"
 
 import (
+	"errors"
 	"runtime"
 )
 
@@ -43,6 +44,31 @@ func coordSeqFromSlice(coords []Coord) (*coordSeq, error) {
 		if err := cs.setY(i, c.Y); err != nil {
 			return nil, err
 		}
+	}
+	return cs, nil
+}
+func coordSeqFromFlatPoints(fp []float64) (*coordSeq, error) {
+	// XXX: handle 3-dim
+	length := len(fp)
+	if length & 1 == 1 {
+		return nil, errors.New("Flat array should have even number of coordinates")
+	}
+	ptr := cGEOSCoordSeq_create(C.uint(length >> 1), C.uint(2))
+	if ptr == nil {
+		return nil, Error()
+	}
+	cs := &coordSeq{c: ptr}
+	coordIndex := 0
+	for i := 0; i < length; i += 2 {
+		x := fp[i]
+		y := fp[i + 1]
+		if err := cs.setX(coordIndex, x); err != nil {
+			return nil, err
+		}
+		if err := cs.setY(coordIndex, y); err != nil {
+			return nil, err
+		}
+		coordIndex++
 	}
 	return cs, nil
 }

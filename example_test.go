@@ -2,8 +2,7 @@ package geos_test
 
 import (
 	"fmt"
-
-	"github.com/paulsmith/gogeos/geos"
+	"github.com/geoblink/geos"
 )
 
 func ExampleGeometry_LineInterpolatePoint() {
