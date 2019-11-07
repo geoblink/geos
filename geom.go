@@ -418,6 +418,7 @@ func NewPolygonFromFlatPoints(shell []float64) (*Geometry, error) {
 
 func (geom *Geometry) PolygonToFlatPoints(out []float64) ([]float64, error) {
 	shell, shellErr := geom.Shell()
+	// No need to keep shell alive since it is unowned
 	if shellErr != nil {
 		return nil, shellErr
 	}
@@ -425,7 +426,11 @@ func (geom *Geometry) PolygonToFlatPoints(out []float64) ([]float64, error) {
 	if ptr == nil {
 		return nil, Error()
 	}
-	cs := coordSeqFromPtr(ptr)
+	// Do not use coordSeqFromPtr, it sets a finalizer and we get a SIGSEV
+	// Since the coordseq is owned by the geometry.
+	// See https://github.com/libgeos/geos/issues/247
+	// cs := coordSeqFromPtr(ptr)
+	cs := &coordSeq{c: ptr}
 	nCoordinates, sizeErr := cs.size()
 	if sizeErr != nil {
 		return nil, sizeErr
@@ -436,9 +441,12 @@ func (geom *Geometry) PolygonToFlatPoints(out []float64) ([]float64, error) {
 	}
 	out = out[0:flatSize]
 	handlemu.Lock()
-	defer handlemu.Unlock()
 	C.go_geos_LinearRingToFlatPoints(handle, (*C.double)(&out[0]), C.ulong(nCoordinates), ptr)
-	runtime.KeepAlive(cs)
+	handlemu.Unlock()
+	// Do not destroy pointer, we get SIGSEV. The memory is owned by the geometry
+	// See https://github.com/libgeos/geos/issues/247
+	// cGEOSCoordSeq_destroy(ptr)
+
 	return out, nil
 }
 
