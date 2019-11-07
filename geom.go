@@ -427,7 +427,6 @@ func (geom *Geometry) PolygonToFlatPoints(out []float64) ([]float64, error) {
 	}
 	cs := coordSeqFromPtr(ptr)
 	nCoordinates, sizeErr := cs.size()
-	runtime.KeepAlive(cs)
 	if sizeErr != nil {
 		return nil, sizeErr
 	}
@@ -439,7 +438,7 @@ func (geom *Geometry) PolygonToFlatPoints(out []float64) ([]float64, error) {
 	handlemu.Lock()
 	defer handlemu.Unlock()
 	C.go_geos_LinearRingToFlatPoints(handle, (*C.double)(&out[0]), C.ulong(nCoordinates), ptr)
-
+	runtime.KeepAlive(cs)
 	return out, nil
 }
 
