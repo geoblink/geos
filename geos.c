@@ -24,15 +24,13 @@ void go_geos_LinearRingToFlatPoints (GEOSContextHandle_t handler, double out[], 
     double *j = out;
     for (i = 0; i < n_out; i++) {
         GEOSCoordSeq_getXY_r(handler, seq, i, j, j + 1);
-        j++;
-        j++;
+        j += 2;
     }
 }
 
 void go_geos_FlatPointsToCoordSeq (GEOSContextHandle_t handler, GEOSCoordSequence *out, double points[], size_t n_points) {
-    int i;
     int j = 0;
-    for (i = 0; i < n_points; i++) {
+    for (int i = 0; i < n_points; i++) {
         GEOSCoordSeq_setXY_r(handler, out, i, points[j], points[j + 1]);
         j++;
         j++;

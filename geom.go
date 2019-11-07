@@ -425,19 +425,21 @@ func (geom *Geometry) PolygonToFlatPoints(out []float64) ([]float64, error) {
 	if ptr == nil {
 		return nil, Error()
 	}
-	//cs := coordSeqFromPtr(ptr)
-	cs := &coordSeq{c: ptr}
+	cs := coordSeqFromPtr(ptr)
 	nCoordinates, sizeErr := cs.size()
 	runtime.KeepAlive(cs)
 	if sizeErr != nil {
 		return nil, sizeErr
 	}
-	flatSize := nCoordinates * 2
+	flatSize := nCoordinates << 1
 	if cap(out) <= flatSize {
 		out = make([]float64, flatSize)
 	}
 	out = out[0:flatSize]
+	handlemu.Lock()
+	defer handlemu.Unlock()
 	C.go_geos_LinearRingToFlatPoints(handle, (*C.double)(&out[0]), C.ulong(nCoordinates), ptr)
+
 	return out, nil
 }
 
