@@ -2,6 +2,7 @@ package geos
 
 import (
 	"bytes"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math"
 	"testing"
@@ -477,7 +478,7 @@ func TestIsEmpty(t *testing.T) {
 var binaryTopoTests = []struct {
 	g1, g2, out string
 	method      func(*Geometry, *Geometry) (*Geometry, error)
-	name string
+	name        string
 }{
 	{
 		"POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))",
@@ -552,7 +553,7 @@ func TestSnap(t *testing.T) {
 var unaryTopoTests = []struct {
 	g1, out string
 	method  func(*Geometry) (*Geometry, error)
-	name string
+	name    string
 }{
 	{
 		"MULTIPOINT((3 1.5), (3.5 1), (4 1), (5 2), (4 1.5), (3.5 1.5))",
@@ -567,12 +568,12 @@ var unaryTopoTests = []struct {
 		"ConvexHull",
 	},
 	/*
-	   {
-	       "POINT(-117 35)",
-	       "GEOMETRYCOLLECTION EMPTY", // XXX can't compare empty geoms for equality
-	       (*Geometry).Boundary,
-	"Boundary",
-	   },
+		   {
+		       "POINT(-117 35)",
+		       "GEOMETRYCOLLECTION EMPTY", // XXX can't compare empty geoms for equality
+		       (*Geometry).Boundary,
+		"Boundary",
+		   },
 	*/
 	{
 		"LINESTRING(0 0, 5 5, 10 0)",
@@ -639,7 +640,7 @@ func TestSimplifyMethods(t *testing.T) {
 		g1, out string
 		tol     float64
 		method  func(*Geometry, float64) (*Geometry, error)
-		name string
+		name    string
 	}{
 		{
 			"LINESTRING(0 0, 1 1, 0 2, 1 3, 0 4, 1 5)",
@@ -670,7 +671,7 @@ var binaryPredTests = []struct {
 	g1, g2 string
 	pred   bool
 	method func(*Geometry, *Geometry) (bool, error)
-	name string
+	name   string
 }{
 	{
 		"POLYGON((0 0, 2 0, 2 2, 0 2, 0 0))",
@@ -1065,7 +1066,7 @@ func TestHex(t *testing.T) {
 }
 
 func TestNewPolygonFromFlatPoints(t *testing.T) {
-	geom, err := NewPolygonFromFlatPoints([]float64{1, 0, 0, 1, 0,0, 1,0})
+	geom, err := NewPolygonFromFlatPoints([]float64{1, 2, 3, 4, 5, 6, 1, 2})
 	if err != nil {
 		t.Fatalf("Expected nil error got %v", err)
 	}
@@ -1080,6 +1081,38 @@ func TestNewPolygonFromFlatPoints(t *testing.T) {
 	if len(coords) != 4 {
 		t.Errorf("Expected four coordinates received %d for %v", len(coords), coords)
 	}
+	assert.Equal(t, coords, []Coord{{X: 1, Y: 2}, {X: 3, Y: 4}, {X: 5, Y: 6}, {X: 1, Y: 2}})
+}
+func TestPolygonToFlatPoints(t *testing.T) {
+	testCases := []struct{
+		name string
+		out []float64
+	} {
+		{
+			"Out is smaller than result",
+			[]float64{},
+		},
+		{
+			"Out has same size",
+			make([]float64, 10),
+		},
+		{
+			"Out is bigger but lower length",
+			make([]float64, 0, 12),
+		},
+	}
+	for _, tc := range(testCases) {
+		t.Run(tc.name, func (t * testing.T) {
+			geom, err := NewPolygonFromFlatPoints([]float64{1, 2, 3, 4, 5, 6, 7, 8, 1, 2})
+			if err != nil {
+				t.Fatalf("Expected nil error got %v", err)
+			}
+			out, err := geom.PolygonToFlatPoints(tc.out)
+			assert.Nil(t, err)
+			assert.Equal(t, []float64{1, 2, 3, 4, 5, 6, 7, 8, 1, 2}, out)
+		})
+	}
+
 }
 
 func TestLineInterpolatePointDistError(t *testing.T) {

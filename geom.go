@@ -354,6 +354,7 @@ func NewLinearRing(coords ...Coord) (*Geometry, error) {
 	}
 	return geomFromCoordSeq(cs, "NewLinearRing", cGEOSGeom_createLinearRing)
 }
+
 // NewLinearRingFromFlatPoints returns a new gometry of type LinearRing, initialized with the given coordinates provided as flat points.  The number of coordinates must either be zero (none
 //// given), in which case it's an empty geometry (IsEmpty() == true), or >= 4.
 func NewLinearRingFromFlatPoints(fp []float64) (*Geometry, error) {
@@ -406,13 +407,47 @@ func NewPolygon(shell []Coord, holes ...[]Coord) (*Geometry, error) {
 	return PolygonFromGeom(ext, ints...)
 }
 
-func NewPolygonFromFlatPoints (shell []float64) (*Geometry, error){
+func NewPolygonFromFlatPoints(shell []float64) (*Geometry, error) {
 	ext, err := NewLinearRingFromFlatPoints(shell)
 	if err != nil {
 		return nil, err
 	}
 	runtime.SetFinalizer(ext, nil)
 	return PolygonFromGeom(ext)
+}
+
+func (geom *Geometry) PolygonToFlatPoints(out []float64) ([]float64, error) {
+	shell, shellErr := geom.Shell()
+	// No need to keep shell alive since it is unowned
+	if shellErr != nil {
+		return nil, shellErr
+	}
+	ptr := cGEOSGeom_getCoordSeq(shell.g)
+	if ptr == nil {
+		return nil, Error()
+	}
+	// Do not use coordSeqFromPtr, it sets a finalizer and we get a SIGSEV
+	// Since the coordseq is owned by the geometry.
+	// See https://github.com/libgeos/geos/issues/247
+	// cs := coordSeqFromPtr(ptr)
+	cs := &coordSeq{c: ptr}
+	nCoordinates, sizeErr := cs.size()
+	if sizeErr != nil {
+		return nil, sizeErr
+	}
+	flatSize := nCoordinates << 1
+	if cap(out) <= flatSize {
+		out = make([]float64, flatSize)
+	}
+	out = out[0:flatSize]
+	handlemu.Lock()
+	C.go_geos_LinearRingToFlatPoints(handle, (*C.double)(&out[0]), C.ulong(nCoordinates), ptr)
+	handlemu.Unlock()
+	// Do not destroy pointer, we get SIGSEV. The memory is owned by the geometry
+	// See https://github.com/libgeos/geos/issues/247
+	// cGEOSCoordSeq_destroy(ptr)
+
+	return out, nil
 }
 
 // PolygonFromGeom returns a new geometry of type Polygon, initialized with the
@@ -652,8 +687,9 @@ func (g *Geometry) IsSimple() (bool, error) {
 func (g *Geometry) IsRing() (bool, error) {
 	return g.unaryPred("IsRing", cGEOSisRing)
 }
+
 // IsValid returns true if the geometry is valid
-func (g *Geometry) IsValid () (bool, error) {
+func (g *Geometry) IsValid() (bool, error) {
 	return g.unaryPred("IsValid", cGEOSisValid)
 }
 
